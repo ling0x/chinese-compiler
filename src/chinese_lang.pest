@@ -1,0 +1,38 @@
+// Keywords
+LET_KW = { "变量" }
+PRINT_KW = { "输出" }
+// concatenation operator
+CONCAT_OP = { "~" }
+
+// Chinese numerals
+CHINESE_DIGIT = { 
+    "零" | "〇" | "一" | "二" | "三" | "四" | "五" | 
+    "六" | "七" | "八" | "九" 
+}
+
+CHINESE_UNIT = {
+    "十" | "百" | "千" | "万"
+}
+
+// Support both simple numbers like "五" and complex ones like "一百二十三"
+CHINESE_NUMBER = @{ 
+    (CHINESE_DIGIT ~ (CHINESE_UNIT? ~ CHINESE_DIGIT)* ~ CHINESE_UNIT? |
+    CHINESE_UNIT) ~ !XID_CONTINUE
+}
+
+NUMBER = { CHINESE_NUMBER | ASCII_DIGIT+ }
+STRING = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+VAR_NAME = @{ XID_START ~ XID_CONTINUE* }
+
+// Expression rules for concatenation
+EXPRESSION = { TERM ~ (CONCAT_OP ~ TERM)* }
+TERM = { NUMBER | STRING | VAR_NAME }
+
+VALUE = { EXPRESSION }
+VAR_DECL = { LET_KW ~ VAR_NAME ~ "=" ~ VALUE ~ ";" }
+PRINT_STMT = { PRINT_KW ~ VALUE ~ ";" }
+
+STATEMENT = { VAR_DECL | PRINT_STMT }
+PROGRAM = { SOI ~ STATEMENT+ ~ EOI }
+
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
