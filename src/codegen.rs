@@ -36,42 +36,6 @@ impl<'ctx> Compiler<'ctx> {
         self.module.add_function("printf", printf_type, None);
     }
 
-    // Compile: 变量 x = 42;
-    pub fn compile_var_decl(&mut self, var_name: &str, value: i64) {
-        let i64_type = self.context.i64_type();
-        let alloca = self.builder.build_alloca(i64_type, var_name).unwrap();
-        let const_val = i64_type.const_int(value as u64, false);
-        self.builder.build_store(alloca, const_val).unwrap();
-        self.variables.insert(var_name.to_string(), alloca);
-    }
-
-    // Compile: 输出 x;
-    pub fn compile_print(&self, var_name: &str) {
-        let printf = self.module.get_function("printf").unwrap();
-
-        // Create format string "%lld\n"
-        let format_str = self
-            .builder
-            .build_global_string_ptr("%lld\n", "fmt")
-            .unwrap();
-
-        // Load variable value
-        let var_ptr = self.variables.get(var_name).unwrap();
-        let value = self
-            .builder
-            .build_load(self.context.i64_type(), *var_ptr, var_name)
-            .unwrap();
-
-        // Call printf
-        self.builder
-            .build_call(
-                printf,
-                &[format_str.as_pointer_value().into(), value.into()],
-                "printf_call",
-            )
-            .unwrap();
-    }
-
     // Create main function wrapper
     pub fn create_main_function(&self) -> FunctionValue<'ctx> {
         let i32_type = self.context.i32_type();
@@ -108,13 +72,41 @@ impl<'ctx> Compiler<'ctx> {
                 "generic",
                 "",
                 inkwell::OptimizationLevel::Default,
-                RelocMode::Default,
+                RelocMode::PIC,
                 CodeModel::Default,
             )
             .unwrap();
 
         target_machine
             .write_to_file(&self.module, FileType::Object, path.as_ref())
+            .unwrap();
+    }
+
+    // Store string as global variable
+    pub fn compile_string_var(&mut self, var_name: &str, value: &str) {
+        let global = self
+            .builder
+            .build_global_string_ptr(value, var_name)
+            .unwrap();
+        self.variables
+            .insert(var_name.to_string(), global.as_pointer_value());
+    }
+
+    // Print string variable
+    pub fn compile_print_string(&self, var_name: &str) {
+        let printf = self.module.get_function("printf").unwrap();
+
+        // Get the string variable
+        let string_ptr = self.variables.get(var_name).unwrap();
+
+        // Call printf directly with the string (it already has format)
+        let format_str = self.builder.build_global_string_ptr("%s\n", "fmt").unwrap();
+        self.builder
+            .build_call(
+                printf,
+                &[format_str.as_pointer_value().into(), (*string_ptr).into()],
+                "printf_call",
+            )
             .unwrap();
     }
 }
