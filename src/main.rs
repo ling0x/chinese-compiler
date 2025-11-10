@@ -1,5 +1,5 @@
-use chinese_compiler::{ChineseLangParser, Rule, chinese_number::chinese_to_number};
 use inkwell::context::Context;
+use ling_lang::{ChineseLangParser, Rule, ling_number::chinese_to_number};
 use pest::Parser;
 use std::fs;
 use std::process::Command;
@@ -8,7 +8,7 @@ mod codegen;
 use codegen::{Compiler, StringPart}; // Import StringPart
 
 fn main() {
-    let source = fs::read_to_string("programs/poem.zh").expect("无法读取文件");
+    let source = fs::read_to_string("programs/poem.ling").expect("无法读取文件");
     println!("Source file content:\n{}", source);
 
     let pairs = ChineseLangParser::parse(Rule::PROGRAM, &source).expect("解析错误");

@@ -1,5 +1,5 @@
 use crate::{
-    Environment, Rule, Value, chinese_number::chinese_to_number, evaluator::evaluate_expression,
+    Environment, Rule, Value, evaluator::evaluate_expression, ling_number::chinese_to_number,
 };
 
 pub fn parse_value(pair: pest::iterators::Pair<Rule>, env: &Environment) -> Value {

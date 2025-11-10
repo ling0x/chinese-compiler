@@ -2,14 +2,14 @@ use std::collections::HashMap;
 
 use pest_derive::Parser;
 
-pub mod chinese_number;
 pub mod codegen;
 pub mod evaluator;
 pub mod executor;
+pub mod ling_number;
 pub mod parser;
 
 #[derive(Parser)]
-#[grammar = "chinese_lang.pest"]
+#[grammar = "ling_lang.pest"]
 pub struct ChineseLangParser;
 
 // Runtime environment to store variables
